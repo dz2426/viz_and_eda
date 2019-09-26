@@ -3,11 +3,13 @@ title: "ggplot 1"
 author: "Duzhi Zhao"
 date: "9/26/2019"
 output: github_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-
+install.packages('hexbin')
 library(tidyverse)
 library(ggridges)
 ```
@@ -81,5 +83,58 @@ weather_df %>%
   ggplot(aes(x = date, y = tmax, color = name)) +
   geom_point(aes(size = prcp), alpha = 0.35) + #information on both temperature, date and precipitation
   geom_smooth(size = 2, se = FALSE)
+```
+
+## Some Extra stuff
+```{r}
+weather_df %>% 
+  ggplot(aes(x = date, y = tmax, color = name)) +
+  geom_smooth(size = 2, se = FALSE)
+```
+
+# 2d density
+```{r}
+weather_df %>% 
+  ggplot(aes(x = date, y = tmax)) +
+  geom_hex()
+
+```
+
+## More kinds of plots!!
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmax, fill = name)) +
+  geom_histogram(position = "dodge") + #separate bar plots next to each other instead of stacking all up 
+  facet_grid(~name)
+```
+
+# Density plot
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmax, fill = name)) +
+  geom_density(alpha = 0.3)
+
+```
+
+# Boxplot
+```{r}
+weather_df %>% 
+  ggplot(aes(x = name, y = tmax)) +
+  geom_boxplot() #Separate each category
+```
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = name, y = tmax)) +
+  geom_violin()
+```
+
+# ridge plots
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmax, y = name)) +
+  geom_density_ridges()
 ```
 
