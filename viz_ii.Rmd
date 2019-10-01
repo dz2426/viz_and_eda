@@ -1,0 +1,101 @@
+---
+title: "viz_ii"
+author: "Duzhi Zhao"
+date: "10/1/2019"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, cache = TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(ggridges)
+```
+
+```{r}
+weather_df = 
+  rnoaa::meteo_pull_monitors(c("USW00094728", "USC00519397", "USS0023B17S"),
+                      var = c("PRCP", "TMIN", "TMAX"), 
+                      date_min = "2017-01-01",
+                      date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(id, USW00094728 = "CentralPark_NY", 
+                      USC00519397 = "Waikiki_HA",
+                      USS0023B17S = "Waterhole_WA"),
+    tmin = tmin / 10,
+    tmax = tmax / 10) %>%
+  select(name, id, everything())
+weather_df
+```
+
+# Add labels
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_point(aes(color = name), alpha = .5) +
+  labs(
+    title = "Temperature plot",
+    x = "Minimum Temp (C)",
+    y = "Maximum Temp (C)",
+    caption = "Data from NOAA via rnoaa package"
+  ) +
+  scale_x_continuous(
+    breaks = c(-15, -5, 20),
+    labels = c("-15º C", "0", "15")
+  )
+```
+
+# Colors
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_point(aes(color = name), alpha = .5) +
+  labs(
+    title = "Temperature plot",
+    x = "Minimum Temp (C)",
+    y = "Maximum Temp (C)",
+    caption = "Data from NOAA via rnoaa package"
+  ) + 
+  scale_color_hue(
+    name = "Weather Station",
+    h = c(50, 250)
+  )
+```
+
+```{r}
+ggp_temp_plot = 
+  weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_point(aes(color = name), alpha = .5) + 
+  labs(
+    title = "Temperature plot",
+    x = "Minimum daily temperature (C)",
+    y = "Maxiumum daily temperature (C)",
+    caption = "Data from the rnoaa package"
+  ) + 
+  viridis::scale_color_viridis(
+    name = "Location", 
+    discrete = TRUE
+  )
+
+ggp_temp_plot
+```
+
+```{r}
+ggp_temp_plot + 
+  theme(legend.position = "bottom")
+```
+
+# Themes
+```{r}
+ggp_temp_plot + 
+  theme_classic() + 
+  theme(legend.position = "bottom")
+
+ggp_temp_plot + 
+  ggthemes::theme_excel() + 
+  theme(legend.position = "bottom")
+```
+
