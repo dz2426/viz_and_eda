@@ -12,18 +12,20 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 library(ggridges)
+install.packages("patchwork")
+install.packages("ggrepel")
 ```
 
 ```{r}
 weather_df = 
   rnoaa::meteo_pull_monitors(c("USW00094728", "USC00519397", "USS0023B17S"),
-                      var = c("PRCP", "TMIN", "TMAX"), 
-                      date_min = "2017-01-01",
-                      date_max = "2017-12-31") %>%
+                             var = c("PRCP", "TMIN", "TMAX"), 
+                             date_min = "2017-01-01",
+                             date_max = "2017-12-31") %>%
   mutate(
     name = recode(id, USW00094728 = "CentralPark_NY", 
-                      USC00519397 = "Waikiki_HA",
-                      USS0023B17S = "Waterhole_WA"),
+                  USC00519397 = "Waikiki_HA",
+                  USS0023B17S = "Waterhole_WA"),
     tmin = tmin / 10,
     tmax = tmax / 10) %>%
   select(name, id, everything())
@@ -97,5 +99,84 @@ ggp_temp_plot +
 ggp_temp_plot + 
   ggthemes::theme_excel() + 
   theme(legend.position = "bottom")
+```
+
+# More than one dataset
+```{r}
+central_park = 
+  weather_df %>% 
+  filter(name == "CentralPark_NY")
+
+waikiki = 
+  weather_df %>% 
+  filter(name == "Waikiki_HA")
+
+ggplot(data = waikiki, aes(x = date, y = tmax, color = name)) + 
+  geom_point() + 
+  geom_line(data = central_park)
+```
+
+# Brief aside about colors
+```{r}
+waikiki %>% 
+  ggplot(aes(x = date, y = tmax)) +
+  geom_point(color = "blue")
+```
+
+## Multi-panel plots
+```{r}
+ggp_scatter =
+  weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) +
+  geom_point()
+
+ggp_density =
+  weather_df %>% 
+  ggplot(aes(x = tmin)) +
+  geom_density()
+
+ggp_box =
+  weather_df %>% 
+  ggplot(aes(x = name, y = tmax)) +
+  geom_point()
+
+ggp_scatter + ggp_density # patchwork library
+```
+
+## Data manipulation
+# Relevel
+```{r}
+weather_df %>% 
+  mutate(
+    name = factor(name),
+    name = fct_relevel(name, "Waikiki_HA", "CentralPark_NY")
+  ) %>% 
+  ggplot(aes(x = name, y = tmax, color = name)) +
+  geom_boxplot()
+```
+
+# Reorder
+```{r}
+weather_df %>% 
+  mutate(
+    name = factor(name),
+    name = fct_reorder(name, tmax)
+  ) %>% 
+  ggplot(aes(x = name, y = tmax, color = name)) +
+  geom_boxplot()
+```
+
+# Restructure then plot
+```{r}
+weather_df %>%
+  pivot_longer(
+    tmax:tmin,
+    names_to = "observation", 
+    values_to = "temp") %>% 
+  ggplot(aes(x = temp, fill = observation)) +
+  geom_density(alpha = .5) + 
+  facet_grid(~name) + 
+  theme(legend.position = "bottom") +
+  viridis::scale_fill_viridis(discrete = TRUE)
 ```
 
